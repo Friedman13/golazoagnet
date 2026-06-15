@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goalzo — סוכן תיירות ספורט</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1117;color:#e8e8e8;height:100dvh;display:flex;flex-direction:column}
+header{background:#1a1f2e;padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2a2f42;flex-shrink:0}
+.logo{width:40px;height:40px;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.htext h1{font-size:16px;font-weight:600;color:#fff}
+.htext p{font-size:12px;color:#6b7280}
+.dot{width:8px;height:8px;background:#22c55e;border-radius:50%;margin-right:auto;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+#msgs{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:80%;padding:11px 15px;border-radius:16px;font-size:14px;line-height:1.6;word-break:break-word;white-space:pre-wrap}
+.bot{background:#1e2335;border-radius:16px 16px 16px 4px;align-self:flex-start}
+.user{background:#2563eb;border-radius:16px 16px 4px 16px;align-self:flex-end}
+.typing{background:#1e2335;align-self:flex-start;padding:13px 16px}
+.dots span{display:inline-block;width:6px;height:6px;background:#6b7280;border-radius:50%;margin:0 2px;animation:b 1.2s infinite}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes b{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+footer{padding:12px 16px;background:#1a1f2e;border-top:1px solid #2a2f42;flex-shrink:0}
+.irow{display:flex;gap:10px;align-items:flex-end}
+textarea{flex:1;background:#0f1117;border:1px solid #2a2f42;border-radius:20px;padding:10px 16px;color:#e8e8e8;font-size:14px;outline:none;font-family:inherit;resize:none;max-height:120px;line-height:1.5}
+textarea:focus{border-color:#2563eb}
+button{background:#2563eb;border:none;border-radius:50%;width:42px;height:42px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+button svg{width:18px;height:18px;fill:white}
+#badge{font-size:12px;color:#22c55e;text-align:center;margin-top:7px;min-height:18px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">⚽</div>
+  <div class="htext"><h1>Goalzo Sport Travel</h1><p>סוכן תיירות ספורט</p></div>
+  <div class="dot"></div>
+</header>
+<div id="msgs"></div>
+<footer>
+  <div class="irow">
+    <textarea id="inp" rows="1" placeholder="כתוב הודעה..."></textarea>
+    <button id="btn"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button>
+  </div>
+  <div id="badge"></div>
+</footer>
+<script>
+let history=[];
+const msgs=document.getElementById('msgs'),inp=document.getElementById('inp'),badge=document.getElementById('badge');
+function addMsg(t,r){const d=document.createElement('div');d.className='msg '+r;d.textContent=t;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;}
+function showTyping(){const d=document.createElement('div');d.className='msg typing';d.id='typing';d.innerHTML='<div class="dots"><span></span><span></span><span></span></div>';msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;}
+function removeTyping(){document.getElementById('typing')?.remove();}
+async function chat(msg){
+  if(msg){addMsg(msg,'user');history.push({role:'user',content:msg});}
+  showTyping();
+  try{
+    const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history})});
+    const data=await res.json();
+    removeTyping();
+    if(data.error){addMsg('שגיאה זמנית — נסה שוב','bot');return;}
+    history.push({role:'assistant',content:data.message});
+    addMsg(data.message,'bot');
+    if(data.saved&&!badge.textContent)badge.textContent='✓ הפרטים נשמרו — נציג יחזור אליך בקרוב';
+  }catch(e){removeTyping();addMsg('שגיאת חיבור — רענן את הדף','bot');}
+}
+document.getElementById('btn').onclick=()=>{const v=inp.value.trim();if(v){chat(v);inp.value='';inp.style.height='auto';}};
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();const v=inp.value.trim();if(v){chat(v);inp.value='';inp.style.height='auto';}}});
+inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=inp.scrollHeight+'px';});
+chat('');
+</script>
+</body>
+</html>
