@@ -36,9 +36,11 @@ def chat():
         data = request.get_json()
         messages = data.get("messages", [])
 
-        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-        print(f"API key status: {'found' if api_key else 'MISSING'}")
+        # אם אין הודעות — שלח ברכה פתיחה
+        if not messages:
+            messages = [{"role": "user", "content": "שלום"}]
 
+        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
         if not api_key:
             return jsonify({"error": "API key missing"}), 500
 
