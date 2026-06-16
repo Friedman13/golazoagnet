@@ -1,7 +1,6 @@
 import os
 from flask import Flask, request, jsonify, render_template
 import urllib.request
-import urllib.error
 import json
 
 app = Flask(__name__)
@@ -38,6 +37,8 @@ def chat():
         messages = data.get("messages", [])
 
         api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        print(f"API key status: {'found' if api_key else 'MISSING'}")
+
         if not api_key:
             return jsonify({"error": "API key missing"}), 500
 
@@ -66,6 +67,7 @@ def chat():
         return jsonify({"message": message})
 
     except Exception as e:
+        print(f"ERROR: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
