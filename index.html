@@ -55,13 +55,12 @@ async function chat(msg){
   if(msg){addMsg(msg,'user');history.push({role:'user',content:msg});}
   showTyping();
   try{
-    const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history})});
+    const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history})});
     const data=await res.json();
     removeTyping();
     if(data.error){addMsg('שגיאה זמנית — נסה שוב','bot');return;}
     history.push({role:'assistant',content:data.message});
     addMsg(data.message,'bot');
-    if(data.saved&&!badge.textContent)badge.textContent='✓ הפרטים נשמרו — נציג יחזור אליך בקרוב';
   }catch(e){removeTyping();addMsg('שגיאת חיבור — רענן את הדף','bot');}
 }
 document.getElementById('btn').onclick=()=>{const v=inp.value.trim();if(v){chat(v);inp.value='';inp.style.height='auto';}};
