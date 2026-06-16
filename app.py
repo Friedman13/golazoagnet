@@ -36,7 +36,6 @@ def chat():
         data = request.get_json()
         messages = data.get("messages", [])
 
-        # אם אין הודעות — שלח ברכה פתיחה
         if not messages:
             messages = [{"role": "user", "content": "שלום"}]
 
@@ -70,8 +69,3 @@ def chat():
 
     except Exception as e:
         print(f"ERROR: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
